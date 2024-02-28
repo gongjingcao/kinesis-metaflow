@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  localstack:
+    image: localstack/localstack:1.2.0
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=kinesis,s3
+      - DEFAULT_REGION=us-east-1
+      - LS_LOG=WARN
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  article-publisher:
+    build: ./populate-script
+    volumes:
+      - ./populate-script:/app
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - NUM_ITERATIONS=2
+      # Adjust DATASET_SIZE_MB as needed for scalability testing.
+      - DATASET_SIZE_MB=1
+    depends_on:
+      - localstack
+
+  process-stream:
+    build: ./process-stream
+    volumes:
+      - ./process-stream:/app
+    environment:
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - USER=gongjingcao
+
+
+
